@@ -25,7 +25,7 @@ import re
 import numpy as np
 import wntr
 import pandas as pd
-import ineqpy
+import ineqpy.inequality as ineqpy
 import matplotlib.pyplot as plt
 from functools import reduce
 from math import gcd
@@ -34,9 +34,9 @@ from math import gcd
 
 #input data BEGIN ####################################################################
 # note: To avoid inaccuracies, make sure reporting_duration is a whole multiple of each cyclelen
-cyclelen=[12, 24, 48, 72, 144, 288, 576] # 
-reporting_duration=576
-rationingtimefactor = 0.75
+cyclelen=[12, 24, 48, 72, 96, 144, 288, 576] # 
+reporting_duration=1152
+rationingtimefactor = 0.50
 
 source_junction='J-1'
 
@@ -109,17 +109,14 @@ def run_sim(wn, results=None):
         results = sim.run_sim() 
     return results
     
-wn = wntr.network.WaterNetworkModel(out_locname) 
+wn = wntr.network.WaterNetworkModel(inp_filename) 
 
 # filter the links supplying demand nodes
 dll=[x[0] for x in list(wn.links()) if pattern.match(x[0])]
 
-plt.figure(figsize=[6.4*2, 4.8])
-ax=plt.subplot(1,2,1)
-
-
+plt.figure(figsize=[6.4, 4.8*3])
+ax=plt.subplot(3,1,1)
 zero_and_cyclelen=[0]+cyclelen
-
 names=["Cycle_{}h".format(x) if x>0 else "Continuous" for x in zero_and_cyclelen]
 adfs=[]
 ginis=[]
@@ -180,8 +177,10 @@ for i, cycle in enumerate(zero_and_cyclelen):
 
 lorenzs=pd.concat(lors,axis=1)
 lorenzs.to_excel(out_locname[:-4]+"_lorenz.xlsx")
+ax=plt.subplot(3,1,2)
+plt.plot(cyclelen,ginis[1:] )
 
-ax=plt.subplot(1,2,2)
+ax=plt.subplot(3,1,3)
 plt.plot(adfs[1:],ginis[1:])
 ax.set_xlabel("ADF (-)")
 ax.set_ylabel("Gini index (-)")
